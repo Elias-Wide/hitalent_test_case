@@ -1,0 +1,17 @@
+[project]
+name = "departments_tree"
+version = "0.1"
+description = "test case"
+authors = [
+    {name = "Ilya Shirokov",email = "ilshi2904@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi (>=0.136.3,<0.137.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
