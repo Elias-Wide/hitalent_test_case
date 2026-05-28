@@ -81,15 +81,3 @@ class SQLAlchemyRepository(Generic[ModelType, SchemaType]):
             await self.session.flush()
         except SQLAlchemyError as e:
             raise RuntimeError('Failed to delete record') from e
-
-    async def add_one_from_dict(self, data_dict: dict) -> int:
-        """Create a new record from a dictionary."""
-        try:
-            model_obj = self.model(**data_dict)
-            self.session.add(model_obj)
-            await self.session.flush()
-            return model_obj
-        except IntegrityError as e:
-            raise ValueError(f'Record already exists: {e}') from e
-        except Exception as e:
-            raise RuntimeError('Internal database error') from e

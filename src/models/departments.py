@@ -1,12 +1,17 @@
-from datetime import datetime, date
-from typing import List, Optional
-from sqlalchemy import ForeignKey, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from datetime import datetime
+from typing import TYPE_CHECKING, List, Optional
+
+from sqlalchemy import ForeignKey, String, UniqueConstraint, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from src.core.constants.departments import DEPARTMENTS
+from src.db.database import Model
+
+if TYPE_CHECKING:
+    from src.models.employees import EmployeesORM
 
 
-
-
-class DepartmentsORM(Base):
+class DepartmentsORM(Model):
     """
     Represent an organizational department.
 
@@ -28,42 +33,36 @@ class DepartmentsORM(Base):
         employees (list[Employee]): Relationship to all employees
             assigned to this specific department.
     """
-    __tablename__ = "departments"
+
+    __tablename__ = 'departments'
     __table_args__ = (
         UniqueConstraint(
-            "name",
-            "parent_id",
-            name="uq_department_name_by_parent",
+            'name',
+            'parent_id',
+            name='uq_department_name_by_parent',
         ),
     )
 
     name: Mapped[str] = mapped_column(
-        String(NAME_MAX_LEN),
+        String(length=DEPARTMENTS.NAME_MAX_LEN),
         nullable=False,
     )
     parent_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("departments.id", ondelete="CASCADE"), 
-        nullable=True
-    )
-    
-    created_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), 
-        nullable=False
+        ForeignKey('departments.id', ondelete='CASCADE'), nullable=True
     )
 
-    parent: Mapped[Optional["Department"]] = relationship(
-        "Department", 
-        remote_side=[id], 
-        back_populates="sub_departments"
+    created_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(), nullable=False
     )
-    
-    sub_departments: Mapped[List["Department"]] = relationship(
-        "Department", 
-        back_populates="parent"
+
+    parent: Mapped[Optional['DepartmentsORM']] = relationship(
+        'departments', remote_side=[id], back_populates='children'
     )
-    
-    employees: Mapped[List["Employee"]] = relationship(
-        "Employee", 
-        back_populates="department", 
-        cascade="all, delete-orphan"
+
+    children: Mapped[List['DepartmentsORM']] = relationship(
+        'departments', back_populates='parent'
+    )
+
+    employees: Mapped[List['EmployeesORM']] = relationship(
+        'employees', back_populates='department', cascade='all, delete-orphan'
     )

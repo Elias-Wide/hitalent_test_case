@@ -2,6 +2,9 @@ from typing import Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.db.database import SessionLocal
+from src.repositories.departments import DepartmentsRepo
+
 
 class DBManager:
     """
@@ -13,14 +16,12 @@ class DBManager:
     ):
         self.session_factory = session_factory
         self.session: AsyncSession | None = None
-        self.users: UsersRepository | None = None
-        self.departments: DepartmentsRepository | None = None
+        self.departments: DepartmentsRepo | None = None
         self._committed = False
 
     async def __aenter__(self) -> 'DBManager':
         self.session = self.session_factory()
-        self.users = UsersRepository(self.session)
-        self.departments = DepartmentsRepository(self.session)
+        self.departments = DepartmentsRepo(self.session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:

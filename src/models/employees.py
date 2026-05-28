@@ -1,11 +1,14 @@
-from datetime import datetime, date
-from typing import List, Optional
-from sqlalchemy import ForeignKey, func
+from datetime import date, datetime
+from typing import Optional
+
+from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.db.database import Model
+from src.models.departments import DepartmentsORM
 
 
-class Employee(Base):
+class EmployeesORM(Model):
     """
     Represent a company employee.
 
@@ -30,11 +33,9 @@ class Employee(Base):
     position: Mapped[str] = mapped_column(nullable=False)
     hired_at: Mapped[Optional[date]] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), 
-        nullable=False
+        server_default=func.now(), nullable=False
     )
 
-    department: Mapped["Department"] = relationship(
-        "Department", 
-        back_populates="employees"
+    department: Mapped['DepartmentsORM'] = relationship(
+        'departments', back_populates='employees'
     )

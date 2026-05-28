@@ -1,6 +1,4 @@
-from abc import ABC, abstractmethod
-
-from backend.db.db_manager import DBManager
+from src.db.manager import DBManager
 
 
 class BaseService:
