@@ -4,12 +4,9 @@ from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
-class Base(DeclarativeBase):
-    """Base class for declarative SQLAlchemy models."""
-    pass
 
 
-class Department(Base):
+class DepartmentsORM(Base):
     """
     Represent an organizational department.
 
@@ -32,7 +29,18 @@ class Department(Base):
             assigned to this specific department.
     """
     __tablename__ = "departments"
-    
+    __table_args__ = (
+        UniqueConstraint(
+            "name",
+            "parent_id",
+            name="uq_department_name_by_parent",
+        ),
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(NAME_MAX_LEN),
+        nullable=False,
+    )
     parent_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("departments.id", ondelete="CASCADE"), 
         nullable=True
