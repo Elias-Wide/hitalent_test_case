@@ -66,3 +66,17 @@ class DepartmentsORM(Model):
     employees: Mapped[List['EmployeesORM']] = relationship(
         'employees', back_populates='department', cascade='all, delete-orphan'
     )
+
+    def __repr__(self) -> str:
+        """Technical representation of the object for debugging."""
+        return (
+            f"<Department("
+            f"id={self.id!r}, "
+            f"name={self.name!r}, "
+            f"parent_id={self.parent_id!r}"
+            f")>"
+        )
+
+    def __str__(self) -> str:
+        """User-friendly string representation."""
+        return self.name
