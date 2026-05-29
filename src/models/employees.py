@@ -39,3 +39,19 @@ class EmployeesORM(Model):
     department: Mapped['DepartmentsORM'] = relationship(
         'departments', back_populates='employees'
     )
+
+        def __repr__(self) -> str:
+        """Technical representation of the object for debugging."""
+        return (
+            f"<Employee("
+            f"id={self.id!r}, "
+            f"full_name={self.full_name!r}, "
+            f"position={self.position!r}, "
+            f"department_id={self.department_id!r}"
+            f")>"
+        )
+
+    def __str__(self) -> str:
+        """User-friendly string representation."""
+        return f"{self.full_name} ({self.position})"
+
