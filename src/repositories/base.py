@@ -42,15 +42,17 @@ class SQLAlchemyRepository(Generic[ModelType, SchemaType]):
         except IntegrityError as e:
             raise ValueError(f'Record already exists: {e}') from e
         except Exception as e:
+            logger.error(f'Error creating record: {e}')
             raise RuntimeError('Internal database error') from e
 
-    async def find_all(self) -> List[SchemaType]:
+    async def get_all(self) -> List[SchemaType]:
         """Retrieve all records and auto-validate into Pydantic schemas."""
         try:
             query = select(self.model)
             result = await self.session.execute(query)
             return result.scalars().all()
         except SQLAlchemyError as e:
+            logger.error(f'Error fetching records: {e}')
             raise RuntimeError('Failed to fetch records') from e
 
     async def get_one_by_field(
@@ -80,4 +82,5 @@ class SQLAlchemyRepository(Generic[ModelType, SchemaType]):
             await self.session.delete(db_obj)
             await self.session.flush()
         except SQLAlchemyError as e:
+            logger.error(f'Error deleting record: {e}')
             raise RuntimeError('Failed to delete record') from e

@@ -1,10 +1,9 @@
-from typing import List
 from src.models.employees import EmployeesORM
 from src.repositories.base import SQLAlchemyRepository
+from src.schemas.employees import SEmployeesBase
 
-class EmployeesRepository(
-    SQLAlchemyRepository[EmployeesORM, SEmployees]
-):
+
+class EmployeesRepository(SQLAlchemyRepository[EmployeesORM, SEmployeesBase]):
     """
     Repository for managing Employee records.
 

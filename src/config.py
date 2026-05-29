@@ -4,9 +4,9 @@ from typing import Optional
 from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_PATH = BASE_DIR / '.env'
-
+SRC_DIR = BASE_DIR / 'src'
 STATIC_DIR = BASE_DIR / 'static'
 
 
@@ -59,6 +59,11 @@ class DatabaseConfig(ConfigBase):
         return v if v else cls.create_url(info, prefix='test_')
 
 
+class AppConfig(ConfigBase):
+    app_name: str
+    mode: str = 'Dev'
+
+
 class Settings(BaseSettings):
     """
     Global application settings container.
@@ -66,7 +71,7 @@ class Settings(BaseSettings):
     Integrates database connection and authentication configurations.
     """
 
-    app_name: str = 'Departments FastAPI'
+    app: AppConfig = Field(default_factory=AppConfig)
     db: DatabaseConfig = Field(default_factory=DatabaseConfig)
 
     @classmethod

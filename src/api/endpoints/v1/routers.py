@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.endpoints.v1.departments import router as departments_router
+from src.api.endpoints.v1.departments import router as departments_router
 
 api_router_v1 = APIRouter(prefix='/v1')
 

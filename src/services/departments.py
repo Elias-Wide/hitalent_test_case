@@ -1,8 +1,6 @@
 from typing import List, Optional
-from src.schemas.departments import (
-    SDepartments,
-    SDepartmentsTreeResponse,
-)
+
+from src.schemas.departments import SDepartmentsCreate, SDepartmentsResponse
 from src.services.base import BaseService
 
 
@@ -15,7 +13,7 @@ class DepartmentsService(BaseService):
     """
 
     async def create_department(
-        self, department_data: SDepartments
+        self, department_data: SDepartmentsCreate
     ) -> int:
         """
         Create a new organizational department.
@@ -28,20 +26,23 @@ class DepartmentsService(BaseService):
         Returns:
             int: The unique identifier of the created department.
         """
-        pass
+        return self.db.departments.add_one(department_data)
 
-    async def get_all_departments(self) -> List[SDepartments]:
+    async def get_all_departments(self) -> List[SDepartmentsResponse]:
         """
         Retrieve a flat list of all active departments.
 
         Returns:
             List[DepartmentSchema]: A list of all validated records.
         """
-        pass
+        departments = await self.db.departments.get_all()
+        return [
+            SDepartmentsResponse.model_validate(dept) for dept in departments
+        ]
 
     async def get_department_by_id(
         self, department_id: int
-    ) -> Optional[SDepartments]:
+    ) -> Optional[SDepartmentsResponse]:
         """
         Find a specific department by its unique identifier.
 
@@ -51,24 +52,29 @@ class DepartmentsService(BaseService):
         Returns:
             Optional[DepartmentSchema]: Validated record or None.
         """
-        pass
+        department = await self.db.departments.get_one_by_field(
+            'id', department_id
+        )
+        if department:
+            return SDepartmentsResponse.model_validate(department)
+        return None
 
-    async def get_department_tree(
-        self, department_id: int, depth: int = 1
-    ) -> SDepartmentsTreeResponse:
-        """
-        Fetch a recursive sub-tree starting from the target department.
+    # async def get_department_tree(
+    #     self, department_id: int, depth: int = 1
+    # ) -> SDepartmentsTreeResponse:
+    #     """
+    #     Fetch a recursive sub-tree starting from the target department.
 
-        Limits the lookup depth between 1 and 5 using DB-level CTE.
+    #     Limits the lookup depth between 1 and 5 using DB-level CTE.
 
-        Args:
-            department_id: Root node ID of the requested hierarchy.
-            depth: Level of nesting to fetch downwards (defaults to 1).
+    #     Args:
+    #         department_id: Root node ID of the requested hierarchy.
+    #         depth: Level of nesting to fetch downwards (defaults to 1).
 
-        Returns:
-            DepartmentTreeResponse: Hierarchical tree Pydantic schema.
-        """
-        pass
+    #     Returns:
+    #         DepartmentTreeResponse: Hierarchical tree Pydantic schema.
+    #     """
+    #     pass
 
     async def move_department(
         self, department_id: int, new_parent_id: Optional[int]

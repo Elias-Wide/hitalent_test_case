@@ -1,4 +1,5 @@
 from typing import List, Optional
+
 from src.schemas.employees import EmployeeSchema
 from src.services.base import BaseService
 
@@ -6,7 +7,7 @@ from src.services.base import BaseService
 class EmployeesService(BaseService):
     """
     Service layer responsible for managing employee business logic.
-    
+
     All business checks and transaction control via DBManager
     are encapsulated within this layer.
     """

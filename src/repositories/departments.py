@@ -1,3 +1,4 @@
+from src.models.departments import DepartmentsORM
 from src.repositories.base import SQLAlchemyRepository
 
 

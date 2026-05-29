@@ -8,6 +8,8 @@ from sqlalchemy import pool
 from alembic import context
 from src.config import settings
 from src.db.database import Model
+from src.models.departments import DepartmentsORM # noqa: F401
+from src.models.employees import EmployeesORM # noqa: F401
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -18,6 +20,8 @@ sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+
+config.set_main_option('sqlalchemy.url', settings.db.url + '?async_fallback=True')
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel

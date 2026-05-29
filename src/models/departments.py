@@ -48,7 +48,10 @@ class DepartmentsORM(Model):
         nullable=False,
     )
     parent_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey('departments.id', ondelete='CASCADE'), nullable=True
+        ForeignKey('departments.id', ondelete='CASCADE'),
+        nullable=True,
+        index=True,
+        comment='Foreign key to parent department.',
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -56,25 +59,29 @@ class DepartmentsORM(Model):
     )
 
     parent: Mapped[Optional['DepartmentsORM']] = relationship(
-        'departments', remote_side=[id], back_populates='children'
+        'DepartmentsORM',
+        remote_side=lambda: DepartmentsORM.id,
+        back_populates='children',
     )
 
     children: Mapped[List['DepartmentsORM']] = relationship(
-        'departments', back_populates='parent'
+        'DepartmentsORM', back_populates='parent'
     )
 
     employees: Mapped[List['EmployeesORM']] = relationship(
-        'employees', back_populates='department', cascade='all, delete-orphan'
+        'EmployeesORM',
+        back_populates='department',
+        cascade='all, delete-orphan',
     )
 
     def __repr__(self) -> str:
         """Technical representation of the object for debugging."""
         return (
-            f"<Department("
-            f"id={self.id!r}, "
-            f"name={self.name!r}, "
-            f"parent_id={self.parent_id!r}"
-            f")>"
+            f'<Department('
+            f'id={self.id!r}, '
+            f'name={self.name!r}, '
+            f'parent_id={self.parent_id!r}'
+            f')>'
         )
 
     def __str__(self) -> str:

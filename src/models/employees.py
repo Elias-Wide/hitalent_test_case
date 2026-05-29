@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import func
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.database import Model
@@ -35,23 +35,26 @@ class EmployeesORM(Model):
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), nullable=False
     )
-
+    department_id: Mapped[int] = mapped_column(
+        ForeignKey('departments.id', ondelete='RESTRICT'),
+        nullable=True,
+        index=True,
+    )
     department: Mapped['DepartmentsORM'] = relationship(
-        'departments', back_populates='employees'
+        'DepartmentsORM', back_populates='employees'
     )
 
-        def __repr__(self) -> str:
+    def __repr__(self) -> str:
         """Technical representation of the object for debugging."""
         return (
-            f"<Employee("
-            f"id={self.id!r}, "
-            f"full_name={self.full_name!r}, "
-            f"position={self.position!r}, "
-            f"department_id={self.department_id!r}"
-            f")>"
+            f'<Employee('
+            f'id={self.id!r}, '
+            f'full_name={self.full_name!r}, '
+            f'position={self.position!r}, '
+            f'department_id={self.department_id!r}'
+            f')>'
         )
 
     def __str__(self) -> str:
         """User-friendly string representation."""
-        return f"{self.full_name} ({self.position})"
-
+        return f'{self.full_name} ({self.position})'

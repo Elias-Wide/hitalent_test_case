@@ -1,5 +1,2 @@
-import enum
-
-
-class DEPARTMENTS(enum):
+class DEPARTMENTS:
     NAME_MAX_LEN: int = 200
