@@ -43,11 +43,6 @@ async def get_department(
 ) -> SDepartmentsResponse:
     service = DepartmentsService(db)
     department = await service.get_department_by_id(department_id)
-    if not department:
-        return Response(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={'detail': 'Department not found'},
-        )
     return SDepartmentsResponse.model_validate(department)
 
 

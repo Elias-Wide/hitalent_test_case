@@ -11,17 +11,19 @@ from src.core.exceptions.api import (
     EmployeeNotFoundAPIException,
     EmployeeValidationAPIException,
 )
-from src.core.exceptions.services import (
+from src.core.exceptions.services.departments import (
     DepartmentAlreadyExistsError,
     DepartmentNotFoundError,
     DepartmentSelfReferenceError,
     DepartmentServiceError,
     DepartmentValidationError,
+    ServiceError,
+)
+from src.core.exceptions.services.employees import (
     EmployeeAlreadyExistsError,
     EmployeeNotFoundError,
     EmployeeServiceError,
     EmployeeValidationError,
-    ServiceError,
 )
 
 

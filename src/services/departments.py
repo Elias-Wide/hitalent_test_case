@@ -5,6 +5,7 @@ from src.core.exceptions.services import (
     DepartmentAlreadyExistsError,
     DepartmentServiceError,
 )
+from src.core.exceptions.services.departments import DepartmentNotFoundError
 from src.core.logging import get_logger
 from src.core.messages.services.departments import (
     DepartmentsErrorMessages,
@@ -87,9 +88,9 @@ class DepartmentsService(BaseService):
         department = await self.db.departments.get_one_by_field(
             'id', department_id
         )
-        if department:
-            return SDepartmentsResponse.model_validate(department)
-        return None
+        if not department:
+            raise DepartmentNotFoundError()
+        return SDepartmentsResponse.model_validate(department)
 
     # async def get_department_tree(
     #     self, department_id: int, depth: int = 1
