@@ -2,31 +2,35 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+from src.core.constants.departments import DepartmentsConst
 
 
-class SDepartmentsBase(BaseModel):
-    """Base schema with shared department attributes."""
+class SDepartmentsCreate(BaseModel):
+    """Schema for validating data on department creation."""
 
     name: str = Field(
-        ..., description='The name of the department', min_length=1
+        ...,
+        description='The name of the department',
+        min_length=DepartmentsConst.NAME_MIN_LEN,
+        max_length=DepartmentsConst.NAME_MAX_LEN,
     )
     parent_id: Optional[int] = Field(
         None, description='Parent department ID if nested', gt=0
     )
+    model_config = ConfigDict(from_attributes=True)
 
 
-class SDepartmentsCreate(SDepartmentsBase):
-    """Schema for validating data on department creation."""
-
-    pass
-
-
-class SDepartmentsResponse(SDepartmentsBase):
-    """Schema for serializing department data for API responses."""
+class SDepartments(SDepartmentsCreate):
+    """Base schema with shared department attributes."""
 
     id: int = Field(..., description='Unique department ID')
     created_at: datetime = Field(
         ..., description='Timestamp when the department was created'
     )
-
     model_config = ConfigDict(from_attributes=True)
+
+
+class SDepartmentsResponse(SDepartments):
+    """Schema for serializing department data for API responses."""
+
+    pass

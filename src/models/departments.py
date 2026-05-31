@@ -1,12 +1,29 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import ForeignKey, String, UniqueConstraint, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import (
+    ForeignKey,
+    String,
+    UniqueConstraint,
+    event,
+    func,
+    inspect,
+)
+from sqlalchemy.orm import (
+    Mapped,
+    Session,
+    mapped_column,
+    relationship,
+    validates,
+)
 
-from src.core.constants.departments import DEPARTMENTS
+from src.core.constants.departments import DepartmentsConst
+from src.core.exceptions.database import DBUniqueViolationError
+from src.core.exceptions.services import DepartmentValidationError
 from src.db.database import Model
+from src.core.logging import get_logger
 
+logger = get_logger(__name__)
 if TYPE_CHECKING:
     from src.models.employees import EmployeesORM
 
@@ -44,7 +61,7 @@ class DepartmentsORM(Model):
     )
 
     name: Mapped[str] = mapped_column(
-        String(length=DEPARTMENTS.NAME_MAX_LEN),
+        String(length=DepartmentsConst.NAME_MAX_LEN),
         nullable=False,
     )
     parent_id: Mapped[Optional[int]] = mapped_column(
@@ -87,3 +104,25 @@ class DepartmentsORM(Model):
     def __str__(self) -> str:
         """User-friendly string representation."""
         return self.name
+
+
+@event.listens_for(DepartmentsORM, 'before_insert')
+@event.listens_for(DepartmentsORM, 'before_update')
+def validate_department_uniqueness(mapper, connection, target: DepartmentsORM):
+    """Validate that no other department exists on the same level."""
+    session = Session.object_session(target)
+    if not session:
+        return
+    stmnt = session.query(DepartmentsORM).filter(
+        DepartmentsORM.name == target.name,
+        DepartmentsORM.parent_id == target.parent_id,
+    )
+    if target.id:
+        stmnt = stmnt.filter(DepartmentsORM.id != target.id)
+
+    if stmnt.first():
+        logger.error(
+            f"Department with name '{target.name}' and "
+            f'parent_id {target.parent_id} already exists.'
+        )
+        raise DBUniqueViolationError()

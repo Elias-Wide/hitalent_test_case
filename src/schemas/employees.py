@@ -15,6 +15,7 @@ class SEmployeesBase(BaseModel):
     )
     hired_at: Optional[date] = Field(None, description='Official hire date')
     department_id: int = Field(..., description='FK for the department', gt=0)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SEmployeesCreate(SEmployeesBase):

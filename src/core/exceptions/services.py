@@ -7,7 +7,7 @@ class ServiceError(AppError):
     msg = 'Business logic error occurred.'
 
 
-# --- Departments ---
+# Departments
 
 
 class DepartmentServiceError(ServiceError):
@@ -30,7 +30,7 @@ class DepartmentValidationError(DepartmentServiceError):
     msg = 'Provided department data is invalid.'
 
 
-# --- Employees ---
+# Employees
 
 
 class EmployeeServiceError(ServiceError):

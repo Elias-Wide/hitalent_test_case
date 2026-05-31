@@ -1,7 +1,23 @@
 from typing import List, Optional
 
-from src.schemas.departments import SDepartmentsCreate, SDepartmentsResponse
+from src.core.exceptions.database import DatabaseError, DBUniqueViolationError
+from src.core.exceptions.services import (
+    DepartmentAlreadyExistsError,
+    DepartmentServiceError,
+)
+from src.core.logging import get_logger
+from src.core.messages.services.departments import (
+    DepartmentsErrorMessages,
+    DepartmentsLogMessages,
+)
+from src.schemas.departments import (
+    SDepartments,
+    SDepartmentsCreate,
+    SDepartmentsResponse,
+)
 from src.services.base import BaseService
+
+logger = get_logger(__name__)
 
 
 class DepartmentsService(BaseService):
@@ -14,7 +30,7 @@ class DepartmentsService(BaseService):
 
     async def create_department(
         self, department_data: SDepartmentsCreate
-    ) -> int:
+    ) -> SDepartments:
         """
         Create a new organizational department.
 
@@ -24,9 +40,25 @@ class DepartmentsService(BaseService):
             department_data: Validated department creation attributes.
 
         Returns:
-            int: The unique identifier of the created department.
+            SDepartments: The created department instance.
         """
-        return self.db.departments.add_one(department_data)
+        try:
+            department = await self.db.departments.add_one(department_data)
+            return SDepartments.model_validate(department)
+        except DBUniqueViolationError as e:
+            logger.error(
+                DepartmentsLogMessages.LOG_CREATE_DEPT_ERR.format(error=e)
+            )
+            raise DepartmentAlreadyExistsError(
+                DepartmentsErrorMessages.ERR_CREATE_DEPT_FAILED
+            ) from e
+        except DatabaseError as e:
+            logger.error(
+                DepartmentsLogMessages.LOG_CREATE_DEPT_ERR.format(error=e)
+            )
+            raise DepartmentServiceError(
+                DepartmentsErrorMessages.ERR_CREATE_DEPT_FAILED
+            ) from e
 
     async def get_all_departments(self) -> List[SDepartmentsResponse]:
         """

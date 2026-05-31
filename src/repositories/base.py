@@ -5,55 +5,52 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.exceptions.database import DatabaseError, DBUniqueViolationError
 from src.core.logging import get_logger
+from src.core.messages.database import DbErrorMessages, DbLogMessages
 from src.db.database import Model
 
 logger = get_logger(__name__)
+
 ModelType = TypeVar('ModelType', bound=Model)
-
-
-ModelType = TypeVar('ModelType')
 SchemaType = TypeVar('SchemaType', bound=BaseModel)
 
 
 class SQLAlchemyRepository(Generic[ModelType, SchemaType]):
-    """
-    Base repository class for common database operations.
-    Now instance-based to work with DBManager's lifecycle.
-    """
+    """Base repository class for common database operations."""
 
     model: Type[ModelType] = None
 
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add_one(self, model_data: SchemaType) -> int:
-        """
-        Create a new record.
-        """
+    async def add_one(self, model_data: SchemaType) -> ModelType:
+        """Create a new record."""
         try:
             model_dict = model_data.model_dump()
             model_obj = self.model(**model_dict)
             self.session.add(model_obj)
-
             await self.session.flush()
-            return model_obj.id
-
+            return model_obj
         except IntegrityError as e:
-            raise ValueError(f'Record already exists: {e}') from e
-        except Exception as e:
-            logger.error(f'Error creating record: {e}')
-            raise RuntimeError('Internal database error') from e
+            print(type(e), e)
+            logger.error(DbLogMessages.LOG_INTEGRITY_ERR.format(error=e))
+            raise DBUniqueViolationError(
+                DbErrorMessages.ERR_RECORD_EXISTS
+            ) from e
+        except SQLAlchemyError as e:
+            logger.error(DbLogMessages.LOG_INSERT_ERR.format(error=e))
+            raise DatabaseError(DbErrorMessages.ERR_INSERT_FAILED) from e
 
     async def get_all(self) -> List[SchemaType]:
-        """Retrieve all records and auto-validate into Pydantic schemas."""
+        """Retrieve all records."""
         try:
             query = select(self.model)
             result = await self.session.execute(query)
             return result.scalars().all()
         except SQLAlchemyError as e:
-            logger.error(f'Error fetching records: {e}')
-            raise RuntimeError('Failed to fetch records') from e
+            logger.error(DbLogMessages.LOG_FETCH_ERR.format(error=e))
+            raise DatabaseError(DbErrorMessages.ERR_FETCH_FAILED) from e
 
     async def get_one_by_field(
         self, attr_name: str, attr_value: Any
@@ -71,7 +68,6 @@ class SQLAlchemyRepository(Generic[ModelType, SchemaType]):
         for field, value in update_data.items():
             if hasattr(db_obj, field):
                 setattr(db_obj, field, value)
-
         self.session.add(db_obj)
         await self.session.flush()
         return db_obj
@@ -82,5 +78,5 @@ class SQLAlchemyRepository(Generic[ModelType, SchemaType]):
             await self.session.delete(db_obj)
             await self.session.flush()
         except SQLAlchemyError as e:
-            logger.error(f'Error deleting record: {e}')
-            raise RuntimeError('Failed to delete record') from e
+            logger.error(DbLogMessages.LOG_DELETE_ERR.format(error=e))
+            raise DatabaseError(DbErrorMessages.ERR_DELETE_FAILED) from e
